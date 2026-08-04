@@ -11,4 +11,6 @@ public interface IEmailOtpRepository
     Task IncrementAttemptAsync( long emailOtpId);
 
     Task MarkAsUsedAsync( long emailOtpId);
+
+    Task InvalidateUnusedOtpsAsync(int userId);
 }

@@ -107,7 +107,7 @@ public class AuthService : IAuthService
         }
 
         // 4. Check expiration
-        if (DateTime.UtcNow > otpRecord.ExpiresAt)
+        if (DateTime.Now > otpRecord.ExpiresAt)
         {
             throw new BadRequestException("OTP has expired. Please request a new OTP.");
         }
@@ -135,5 +135,42 @@ public class AuthService : IAuthService
 
         // 8. Verify user email
         await _userRepository.MarkEmailAsVerifiedAsync(user.UserId);
+    }
+
+    public async Task ResendOtpAsync(ResendOtpRequestDto request)
+    {
+        var email = request.Email.Trim().ToLowerInvariant();
+
+        // 1. Find user
+        var user = await _userRepository.GetByEmailAsync(email);
+
+        if(user == null) 
+        {
+            throw new NotFoundException("User not found.");
+        }
+
+        // 2. Already verified?
+        if(user.IsEmailVerified)
+        {
+            throw new BadRequestException("Email is already verified.");
+        }
+
+        // 3. Invalidate previous OTPs
+        await _emailOtpRepository.InvalidateUnusedOtpsAsync(user.UserId);
+
+        // 4. Generate new OTP
+        var otp = _otpService.GenerateOtp();
+
+        // 5. Hash OTP
+        var otpHash = _otpService.HashOtp(otp);
+
+        // 6. Calculate expiry
+        var expiresAt = _otpService.GetExpiryTime();
+
+        // 7. Save new OTP
+        await _emailOtpRepository.CreateAsync(user.UserId, otpHash, expiresAt);
+
+        // 8. Send actual OTP
+        await _emailService.SendOtpAsync(user.Email, user.FirstName, otp);
     }
 }

@@ -7,8 +7,7 @@ namespace EmployeeManagement.Infrastructure.Data;
 
 public partial class EmployeeManagementDbContext : DbContext
 {
-    public EmployeeManagementDbContext(DbContextOptions<EmployeeManagementDbContext> options)
-        : base(options)
+    public EmployeeManagementDbContext(DbContextOptions<EmployeeManagementDbContext> options) : base(options)
     {
     }
 
@@ -27,6 +26,7 @@ public partial class EmployeeManagementDbContext : DbContext
             entity.HasKey(e => e.EmailOtpId).HasName("PK__EmailOtp__24FA0AF521423AEB");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysutcdatetime())");
+            entity.Property(e => e.OtpStatus).HasDefaultValue("Pending");
 
             entity.HasOne(d => d.User).WithMany(p => p.EmailOtps)
                 .OnDelete(DeleteBehavior.ClientSetNull)

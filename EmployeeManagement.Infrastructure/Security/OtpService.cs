@@ -16,35 +16,29 @@ public class OtpService : IOtpService
 
     public string GenerateOtp()
     {
-        return RandomNumberGenerator
-            .GetInt32(100000, 1000000)
-            .ToString();
+        return RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
     }
 
     public string HashOtp(string otp)
     {
-        var bytes = SHA256.HashData(
-            Encoding.UTF8.GetBytes(otp));
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(otp));
 
         return Convert.ToHexString(bytes);
     }
 
-    public bool VerifyOtp(
-        string otp,
-        string otpHash)
+    public bool VerifyOtp(string otp, string otpHash)
     {
         var generatedHash = HashOtp(otp);
 
-        return CryptographicOperations.FixedTimeEquals(
-            Convert.FromHexString(generatedHash),
-            Convert.FromHexString(otpHash));
+        return CryptographicOperations.FixedTimeEquals(Convert.FromHexString(generatedHash), Convert.FromHexString(otpHash));
     }
 
     public DateTime GetExpiryTime()
     {
         var expiryMinutes = _configuration.GetValue<int>("OtpSettings:ExpiryMinutes");
 
-        return DateTime.UtcNow.AddMinutes(expiryMinutes);
+        //return DateTime.UtcNow.AddMinutes(expiryMinutes);
+        return DateTime.Now.AddMinutes(expiryMinutes);
     }
 
     public int GetMaxAttempts()

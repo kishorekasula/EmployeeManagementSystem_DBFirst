@@ -20,13 +20,18 @@ public partial class EmailOtp
 
     public DateTime ExpiresAt { get; set; }
 
-    public bool IsUsed { get; set; }
-
     public int AttemptCount { get; set; }
 
     public DateTime CreatedAt { get; set; }
 
     public DateTime? UsedAt { get; set; }
+
+    [StringLength(20)]
+    public string OtpStatus { get; set; } = null!;
+
+    public DateTime? VerifiedAt { get; set; }
+
+    public DateTime? RevokedAt { get; set; }
 
     [ForeignKey("UserId")]
     [InverseProperty("EmailOtps")]

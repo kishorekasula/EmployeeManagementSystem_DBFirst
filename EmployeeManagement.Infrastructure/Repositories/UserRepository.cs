@@ -68,10 +68,7 @@ public class UserRepository : IUserRepository
     {
         email = email.Trim();
 
-        return await _dbContext.Users
-            .AsNoTracking()
-            .Where(user => user.Email == email)
-            .Select(user => new UserDataDto
+        return await _dbContext.Users.AsNoTracking().Where(user => user.Email == email).Select(user => new UserDataDto
             {
                 UserId = user.UserId,
                 FirstName = user.FirstName,
@@ -83,9 +80,7 @@ public class UserRepository : IUserRepository
                 UpdatedAt = user.UpdatedAt,
                 LastLoginAt = user.LastLoginAt,
 
-                Roles = user.UserRoles
-                    .Select(ur => ur.Role.RoleName)
-                    .ToList()
+                Roles = user.UserRoles.Select(ur => ur.Role.RoleName).ToList()
             })
             .FirstOrDefaultAsync();
     }
@@ -138,9 +133,7 @@ public class UserRepository : IUserRepository
 
     public async Task MarkEmailAsVerifiedAsync(int userId)
     {
-        var user = await _dbContext.Users
-            .FirstOrDefaultAsync(x =>
-                x.UserId == userId);
+        var user = await _dbContext.Users.FirstOrDefaultAsync(x => x.UserId == userId);
 
         if (user == null)
             return;

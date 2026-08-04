@@ -29,16 +29,12 @@ public class EmailService : IEmailService
         {
             EnableSsl = true,
 
-            Credentials = new NetworkCredential(
-                senderEmail,
-                appPassword)
+            Credentials = new NetworkCredential(senderEmail,appPassword)
         };
 
         using var message = new MailMessage
         {
-            From = new MailAddress(
-                senderEmail!,
-                senderName),
+            From = new MailAddress(senderEmail!,senderName),
 
             Subject = "Verify your email",
 

@@ -2,6 +2,7 @@
 using EmployeeManagement.Application.DTOs.Auth;
 using EmployeeManagement.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
+using static System.Net.WebRequestMethods;
 
 namespace EmployeeManagementSystem.API.Controllers;
 
@@ -78,6 +79,41 @@ public class AuthController : ControllerBase
                 {
                     statusCode = StatusCodes.Status400BadRequest,
 
+                    message = ex.Message
+                });
+        }
+    }
+
+    [HttpPost("resend-otp")]
+    public async Task<IActionResult> ResendOtp([FromBody] ResendOtpRequestDto request)
+    {
+        try
+        {
+            await _authService.ResendOtpAsync(request);
+
+            return StatusCode(StatusCodes.Status200OK,
+                new
+                {
+                    statusCode = StatusCodes.Status200OK,
+
+                    message = "A new verification OTP has been sent."
+                });
+        }
+        catch (NotFoundException ex)
+        {
+            return StatusCode(StatusCodes.Status404NotFound,
+                new
+                {
+                    statusCode = StatusCodes.Status404NotFound,
+                    message = ex.Message
+                });
+        }
+        catch (BadRequestException ex)
+        {
+            return StatusCode(StatusCodes.Status400BadRequest,
+                new
+                {
+                    statusCode = StatusCodes.Status400BadRequest,
                     message = ex.Message
                 });
         }

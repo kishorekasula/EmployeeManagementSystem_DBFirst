@@ -1,5 +1,6 @@
 ﻿using EmployeeManagement.Application.DTOs.Auth;
 using EmployeeManagement.Application.Interfaces.Repositories;
+using EmployeeManagement.Domain.Constants;
 using EmployeeManagement.Infrastructure.Data;
 using EmployeeManagement.Infrastructure.Persistence.Models;
 using Microsoft.EntityFrameworkCore;
@@ -22,9 +23,9 @@ public class EmailOtpRepository : IEmailOtpRepository
             UserId = userId,
             OtpHash = otpHash,
             ExpiresAt = expiresAt,
-            IsUsed = false,
+            OtpStatus = OtpStatusConstants.Pending,
             AttemptCount = 0,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.Now
         };
 
         _dbContext.EmailOtps.Add(entity);
@@ -34,11 +35,7 @@ public class EmailOtpRepository : IEmailOtpRepository
 
     public async Task<EmailOtpDataDto?> GetLatestUnusedAsync(int userId)
     {
-        return await _dbContext.EmailOtps
-            .AsNoTracking()
-            .Where(x =>
-                x.UserId == userId &&
-                !x.IsUsed)
+        return await _dbContext.EmailOtps.AsNoTracking().Where(x => x.UserId == userId && x.OtpStatus == OtpStatusConstants.Pending)
             .OrderByDescending(x => x.CreatedAt)
             .Select(x => new EmailOtpDataDto
             {
@@ -46,17 +43,14 @@ public class EmailOtpRepository : IEmailOtpRepository
                 UserId = x.UserId,
                 OtpHash = x.OtpHash,
                 ExpiresAt = x.ExpiresAt,
-                IsUsed = x.IsUsed,
+                IsUsed = OtpStatusConstants.Verified.Equals(x.OtpStatus),
                 AttemptCount = x.AttemptCount
-            })
-            .FirstOrDefaultAsync();
+            }).FirstOrDefaultAsync();
     }
 
     public async Task IncrementAttemptAsync(long emailOtpId)
     {
-        var otp = await _dbContext.EmailOtps
-            .FirstOrDefaultAsync(x =>
-                x.EmailOtpId == emailOtpId);
+        var otp = await _dbContext.EmailOtps.FirstOrDefaultAsync(x => x.EmailOtpId == emailOtpId);
 
         if (otp == null)
             return;
@@ -68,15 +62,29 @@ public class EmailOtpRepository : IEmailOtpRepository
 
     public async Task MarkAsUsedAsync(long emailOtpId)
     {
-        var otp = await _dbContext.EmailOtps
-            .FirstOrDefaultAsync(x =>
-                x.EmailOtpId == emailOtpId);
+        var otp = await _dbContext.EmailOtps.FirstOrDefaultAsync(x => x.EmailOtpId == emailOtpId);
 
         if (otp == null)
             return;
 
-        otp.IsUsed = true;
-        otp.UsedAt = DateTime.UtcNow;
+        otp.OtpStatus = OtpStatusConstants.Verified;
+        otp.VerifiedAt = DateTime.Now;
+
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task InvalidateUnusedOtpsAsync(int userId)
+    {
+        var otps = await _dbContext.EmailOtps.Where(x => x.UserId == userId && x.OtpStatus == OtpStatusConstants.Pending).ToListAsync();
+
+        if (otps.Count == 0)
+            return;
+
+        foreach (var otp in otps)
+        {
+            otp.OtpStatus = OtpStatusConstants.Revoked;
+            otp.RevokedAt = DateTime.Now;
+        }
 
         await _dbContext.SaveChangesAsync();
     }
