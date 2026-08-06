@@ -1,4 +1,5 @@
-﻿using EmployeeManagement.Application.DTOs.Users;
+﻿using EmployeeManagement.Application.DTOs.Auth;
+using EmployeeManagement.Application.DTOs.Users;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,5 +21,9 @@ namespace EmployeeManagement.Application.Interfaces.Repositories
         Task<int> CreateAsync(CreateUserDataDto user, string roleCode);
 
         Task MarkEmailAsVerifiedAsync(int userId);
+
+        Task<LoginUserDto?> GetLoginUserAsync(string email);
+
+        Task UpdateLastLoginAsync(int userId);
     }
 }

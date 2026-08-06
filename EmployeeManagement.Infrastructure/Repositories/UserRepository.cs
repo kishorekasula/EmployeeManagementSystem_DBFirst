@@ -1,4 +1,5 @@
-﻿using EmployeeManagement.Application.DTOs.Users;
+﻿using EmployeeManagement.Application.DTOs.Auth;
+using EmployeeManagement.Application.DTOs.Users;
 using EmployeeManagement.Application.Interfaces.Repositories;
 using EmployeeManagement.Infrastructure.Data;
 using EmployeeManagement.Infrastructure.Persistence.Models;
@@ -17,8 +18,7 @@ public class UserRepository : IUserRepository
 
     public async Task<List<UserDataDto>> GetAllAsync()
     {
-        return await _dbContext.Users
-            .AsNoTracking()
+        return await _dbContext.Users.AsNoTracking()
             .Select(user => new UserDataDto
             {
                 UserId = user.UserId,
@@ -69,19 +69,19 @@ public class UserRepository : IUserRepository
         email = email.Trim();
 
         return await _dbContext.Users.AsNoTracking().Where(user => user.Email == email).Select(user => new UserDataDto
-            {
-                UserId = user.UserId,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email,
-                IsEmailVerified = user.IsEmailVerified,
-                IsActive = user.IsActive,
-                CreatedAt = user.CreatedAt,
-                UpdatedAt = user.UpdatedAt,
-                LastLoginAt = user.LastLoginAt,
+        {
+            UserId = user.UserId,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Email = user.Email,
+            IsEmailVerified = user.IsEmailVerified,
+            IsActive = user.IsActive,
+            CreatedAt = user.CreatedAt,
+            UpdatedAt = user.UpdatedAt,
+            LastLoginAt = user.LastLoginAt,
 
-                Roles = user.UserRoles.Select(ur => ur.Role.RoleName).ToList()
-            })
+            Roles = user.UserRoles.Select(ur => ur.Role.RoleName).ToList()
+        })
             .FirstOrDefaultAsync();
     }
 
@@ -142,5 +142,37 @@ public class UserRepository : IUserRepository
         user.UpdatedAt = DateTime.UtcNow;
 
         await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task<LoginUserDto?> GetLoginUserAsync(string email)
+    {
+        email = email.Trim();
+
+        return await _dbContext.Users.AsNoTracking().Where(x => x.Email == email).Select(user => new LoginUserDto
+            {
+                UserId = user.UserId,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                PasswordHash = user.PasswordHash,
+                IsEmailVerified = user.IsEmailVerified,
+                IsActive = user.IsActive,
+
+                Roles = user.UserRoles.Select(r => r.Role.RoleName).ToList()
+            }).FirstOrDefaultAsync();
+    }
+
+    public async Task UpdateLastLoginAsync(int userId)
+    {
+        var user = await _dbContext.Users.FirstOrDefaultAsync(x => x.UserId == userId);
+
+        if (user == null)
+            return;
+
+        user.LastLoginAt = DateTime.UtcNow;
+        user.UpdatedAt = DateTime.UtcNow;
+
+        await _dbContext.SaveChangesAsync();
+
     }
 }

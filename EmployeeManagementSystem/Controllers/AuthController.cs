@@ -118,4 +118,18 @@ public class AuthController : ControllerBase
                 });
         }
     }
+
+    [HttpPost("login")]
+    public async Task<IActionResult> Login(
+    LoginRequestDto request)
+    {
+        var result = await _authService.LoginAsync(request);
+
+        return Ok(new
+        {
+            statusCode = StatusCodes.Status200OK,
+            message = "Login successful.",
+            data = result
+        });
+    }
 }

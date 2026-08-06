@@ -39,5 +39,8 @@ public partial class User
     public virtual ICollection<EmailOtp> EmailOtps { get; set; } = new List<EmailOtp>();
 
     [InverseProperty("User")]
+    public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
+
+    [InverseProperty("User")]
     public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
 }

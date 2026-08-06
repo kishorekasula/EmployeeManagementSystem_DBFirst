@@ -9,4 +9,6 @@ public interface IAuthService
     Task VerifyEmailAsync(VerifyEmailRequestDto request);
 
     Task ResendOtpAsync(ResendOtpRequestDto request);
+
+    Task<LoginResponseDto> LoginAsync(LoginRequestDto request);
 }
