@@ -7,11 +7,14 @@ namespace EmployeeManagement.Infrastructure.Data;
 
 public partial class EmployeeManagementDbContext : DbContext
 {
-    public EmployeeManagementDbContext(DbContextOptions<EmployeeManagementDbContext> options) : base(options)
+    public EmployeeManagementDbContext(DbContextOptions<EmployeeManagementDbContext> options)
+        : base(options)
     {
     }
 
     public virtual DbSet<EmailOtp> EmailOtps { get; set; }
+
+    public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
 
     public virtual DbSet<Role> Roles { get; set; }
 
@@ -31,6 +34,15 @@ public partial class EmployeeManagementDbContext : DbContext
             entity.HasOne(d => d.User).WithMany(p => p.EmailOtps)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_EmailOtps_Users");
+        });
+
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.HasKey(e => e.RefreshTokenId).HasName("PK__RefreshT__F5845E39BD1609D9");
+
+            entity.HasOne(d => d.User).WithMany(p => p.RefreshTokens)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_RefreshTokens_Users");
         });
 
         modelBuilder.Entity<Role>(entity =>

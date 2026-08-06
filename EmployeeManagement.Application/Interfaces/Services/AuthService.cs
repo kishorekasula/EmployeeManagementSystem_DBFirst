@@ -13,19 +13,25 @@ public class AuthService : IAuthService
     private readonly IOtpService _otpService;
     private readonly IEmailOtpRepository _emailOtpRepository;
     private readonly IEmailService _emailService;
+    private readonly IJwtService _jwtService;
+    private readonly IRefreshTokenRepository _refreshTokenRepository;
 
     public AuthService(
           IUserRepository userRepository,
           IPasswordHasher passwordHasher,
           IOtpService otpService,
           IEmailOtpRepository emailOtpRepository,
-          IEmailService emailService)
+          IEmailService emailService,
+          IJwtService jwtService,
+          IRefreshTokenRepository refreshTokenRepository)
     {
         _userRepository = userRepository;
         _passwordHasher = passwordHasher;
         _otpService = otpService;
         _emailOtpRepository = emailOtpRepository;
         _emailService = emailService;
+        _jwtService = jwtService;
+        _refreshTokenRepository = refreshTokenRepository;
     }
 
     public async Task<RegisterResponseDto> RegisterAsync(RegisterRequestDto request)
@@ -172,5 +178,71 @@ public class AuthService : IAuthService
 
         // 8. Send actual OTP
         await _emailService.SendOtpAsync(user.Email, user.FirstName, otp);
+    }
+
+    public async Task<LoginResponseDto> LoginAsync(LoginRequestDto request)
+    {
+        var user = await _userRepository.GetLoginUserAsync(request.Email);
+        
+        if (user == null)
+        {
+            throw new NotFoundException("Invalid email or password.");
+        }
+
+        if(!user.IsEmailVerified)
+        {
+            throw new BadRequestException("Please verify your email before logging in.");
+        }
+
+        if(!user.IsActive)
+        {
+            throw new BadRequestException("Your account is inactive.");
+        }
+
+        var passwordValid = _passwordHasher.Verify(request.Password, user.PasswordHash);
+
+        if (!passwordValid)
+        {
+            throw new UnauthorizedAccessException("Invalid email or password.");
+        }
+
+        var accessToken = _jwtService.GetAccessToken(
+            new JwtUserDto
+            {
+                UserId = user.UserId,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email
+            },
+            user.Roles);
+
+        var refreshToken = _jwtService.GetRefreshToken();
+
+        await _refreshTokenRepository.RevokeAllAsync(user.UserId);
+
+        await _refreshTokenRepository.SaveAsync(user.UserId, refreshToken, _jwtService.GetRefreshTokenExpiry());
+
+        await _userRepository.UpdateLastLoginAsync(user.UserId);
+
+        // Here you would typically validate the password and generate tokens
+        // For now, we'll just return a basic login response
+        return new LoginResponseDto
+        {
+            UserId = user.UserId,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Email = user.Email,
+            Roles = user.Roles,
+
+            AccessToken = accessToken,
+
+            RefreshToken = refreshToken,
+
+            AccessTokenExpiry =
+        _jwtService.GetAccessTokenExpiry(),
+
+            RefreshTokenExpiry =
+        _jwtService.GetRefreshTokenExpiry()
+        };
     }
 }
