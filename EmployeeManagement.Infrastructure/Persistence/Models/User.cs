@@ -7,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 namespace EmployeeManagement.Infrastructure.Persistence.Models;
 
 [Table("Users", Schema = "Security")]
-[Index("Email", Name = "UQ_Users_Email", IsUnique = true)]
 public partial class User
 {
     [Key]
