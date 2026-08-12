@@ -1,11 +1,13 @@
 ﻿using EmployeeManagement.Application.DTOs.Departments;
 using EmployeeManagement.Application.Interfaces.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EmployeeManagementSystem.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class DepartmentsController : ControllerBase
     {
         private readonly IDepartmentService _departmentService;
@@ -65,6 +67,69 @@ namespace EmployeeManagementSystem.API.Controllers
                 statusCode = StatusCodes.Status200OK,
                 data = department
             });
+        }
+
+        [HttpPut("{departmentId}")]
+        public async Task<IActionResult> UpdateDepartment(int departmentId, [FromBody] UpdateDepartmentRequestDto updateDepartmentRequestDto)
+        {
+            try
+            {
+                var department = await _departmentService.UpdateDepartmentAsync(departmentId, updateDepartmentRequestDto);
+
+                if (department == null)
+                {
+                    return NotFound(new
+                    {
+                        statusCode = StatusCodes.Status404NotFound,
+                        message = "Department not found."
+                    });
+                }
+
+                return Ok(new
+                {
+                    statusCode = StatusCodes.Status200OK,
+                    message = "Department updated successfully.",
+                    data = department
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, new
+                {
+                    statusCode = StatusCodes.Status400BadRequest,
+                    message = ex.Message
+                });
+            }
+        }
+
+        [HttpDelete("{departmentId}")]
+        public async Task<IActionResult> DeleteDepartment(int departmentId)
+        {
+            try
+            {
+                var result = await _departmentService.DeleteDepartmentAsync(departmentId);
+                if (!result)
+                {
+                    return NotFound(new
+                    {
+                        statusCode = StatusCodes.Status404NotFound,
+                        message = "Department not found."
+                    });
+                }
+                return Ok(new
+                {
+                    statusCode = StatusCodes.Status200OK,
+                    message = "Department deleted successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, new
+                {
+                    statusCode = StatusCodes.Status400BadRequest,
+                    message = ex.Message
+                });
+            }
         }
     }
 }

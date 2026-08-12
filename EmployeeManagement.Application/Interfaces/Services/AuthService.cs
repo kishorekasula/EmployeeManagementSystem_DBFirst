@@ -129,6 +129,11 @@ public class AuthService : IAuthService
         // 6. Verify OTP
         var isValid = _otpService.VerifyOtp(request.Otp, otpRecord.OtpHash);
 
+        if (isValid)
+        {
+            _emailService.SendOnboardingEmailAsync(user.Email, user.FirstName, user.LastName);
+        }
+
         if (!isValid)
         {
             await _emailOtpRepository.IncrementAttemptAsync(otpRecord.EmailOtpId);
@@ -228,21 +233,18 @@ public class AuthService : IAuthService
         // For now, we'll just return a basic login response
         return new LoginResponseDto
         {
-            UserId = user.UserId,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            Email = user.Email,
-            Roles = user.Roles,
+            user_id = user.UserId,
+            first_name = user.FirstName,
+            last_name = user.LastName,
+            email = user.Email,
+            role = user.Roles,
+            token = accessToken,
 
-            AccessToken = accessToken,
+            //RefreshToken = refreshToken,
 
-            RefreshToken = refreshToken,
+            //AccessTokenExpiry = _jwtService.GetAccessTokenExpiry(),
 
-            AccessTokenExpiry =
-        _jwtService.GetAccessTokenExpiry(),
-
-            RefreshTokenExpiry =
-        _jwtService.GetRefreshTokenExpiry()
+            //RefreshTokenExpiry = _jwtService.GetRefreshTokenExpiry()
         };
     }
 }

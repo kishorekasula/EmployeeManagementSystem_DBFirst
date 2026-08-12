@@ -19,6 +19,21 @@ namespace EmployeeManagement.Application.Services
             return await _departmentRepository.GetAllDepartmentsAsync();
         }
 
+        public async Task<DepartmentResponseDto?> GetDepartmentByIdAsync(int departmentId)
+        {
+            return await _departmentRepository.GetDepartmentByIdAsync(departmentId);
+        }
+
+        public async Task<bool> ExistsDepartmentByCodeAsync(string departmentCode)
+        {
+            return await _departmentRepository.ExistsDepartmentByCodeAsync(departmentCode);
+        }
+
+        public async Task<bool> ExistsDepartmentByNameAsync(string departmentName)
+        {
+            return await _departmentRepository.ExistsDepartmentByNameAsync(departmentName);
+        }
+
         public async Task<DepartmentResponseDto> CreateDepartmentAsync(CreateDepartmentRequestDto createDepartmentRequestDto)
         {
             // Check if department code already exists
@@ -34,9 +49,24 @@ namespace EmployeeManagement.Application.Services
             return await _departmentRepository.CreateDepartmentAsync(createDepartmentRequestDto);
         }
 
-        public async Task<DepartmentResponseDto?> GetDepartmentByIdAsync(int departmentId)
+        public async Task<DepartmentResponseDto> UpdateDepartmentAsync(int departmentId, UpdateDepartmentRequestDto updateDepartmentRequestDto)
         {
-            return await _departmentRepository.GetDepartmentByIdAsync(departmentId);
+            return await _departmentRepository.UpdateDepartmentAsync(departmentId, updateDepartmentRequestDto);
+        }
+
+        public async Task<bool> DeleteDepartmentAsync(int departmentId)
+        {
+            var department = await _departmentRepository.GetDepartmentByIdAsync(departmentId);
+            if (department == null)
+            {
+                throw new Exception($"Department with ID '{departmentId}' not found.");
+            }
+            var result = await _departmentRepository.DeleteDepartmentAsync(departmentId);
+            if (!result)
+            {
+                throw new Exception($"Failed to delete department with ID '{departmentId}'.");
+            }
+            return true;
         }
     }
 }

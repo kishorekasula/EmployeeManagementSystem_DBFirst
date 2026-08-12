@@ -89,18 +89,27 @@ namespace EmployeeManagement.Infrastructure.Repositories
         public async Task<DepartmentResponseDto> UpdateDepartmentAsync(int departmentId, UpdateDepartmentRequestDto updateDepartmentRequestDto)
         {
             var department = await _dbContext.Departments.FirstOrDefaultAsync(d => d.DepartmentId == departmentId);
+
             if (department == null)
             {
                 throw new InvalidOperationException("Department not found");
             }
 
-            department.DepartmentCode = updateDepartmentRequestDto.department_code;
-            department.DepartmentName = updateDepartmentRequestDto.department_name;
-            department.DepartmentDescription = updateDepartmentRequestDto.department_description;
-            department.IsActive = updateDepartmentRequestDto.is_active;
-            department.UpdatedAt = DateTime.Now;
+            try
+            {
+                department.DepartmentCode = updateDepartmentRequestDto.department_code;
+                department.DepartmentName = updateDepartmentRequestDto.department_name;
+                department.DepartmentDescription = updateDepartmentRequestDto.department_description;
+                department.IsActive = updateDepartmentRequestDto.is_active;
+                department.UpdatedAt = DateTime.Now;
 
-            await _dbContext.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync();
+            }
+
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Error updating department: {ex.Message}", ex);
+            }
 
             return new DepartmentResponseDto
             {
