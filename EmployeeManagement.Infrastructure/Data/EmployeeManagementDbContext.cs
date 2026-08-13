@@ -7,10 +7,12 @@ namespace EmployeeManagement.Infrastructure.Data;
 
 public partial class EmployeeManagementDbContext : DbContext
 {
-    public EmployeeManagementDbContext(DbContextOptions<EmployeeManagementDbContext> options)
-        : base(options)
+    public EmployeeManagementDbContext(DbContextOptions<EmployeeManagementDbContext> options) : base(options)
     {
+
     }
+
+    public virtual DbSet<Department> Departments { get; set; }
 
     public virtual DbSet<EmailOtp> EmailOtps { get; set; }
 
@@ -24,10 +26,14 @@ public partial class EmployeeManagementDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Department>(entity =>
+        {
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysutcdatetime())");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+        });
+
         modelBuilder.Entity<EmailOtp>(entity =>
         {
-            entity.HasKey(e => e.EmailOtpId).HasName("PK__EmailOtp__24FA0AF521423AEB");
-
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysutcdatetime())");
             entity.Property(e => e.OtpStatus).HasDefaultValue("Pending");
 
@@ -38,8 +44,6 @@ public partial class EmployeeManagementDbContext : DbContext
 
         modelBuilder.Entity<RefreshToken>(entity =>
         {
-            entity.HasKey(e => e.RefreshTokenId).HasName("PK__RefreshT__F5845E39BD1609D9");
-
             entity.HasOne(d => d.User).WithMany(p => p.RefreshTokens)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_RefreshTokens_Users");
