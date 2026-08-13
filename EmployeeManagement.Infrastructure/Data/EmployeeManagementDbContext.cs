@@ -7,9 +7,9 @@ namespace EmployeeManagement.Infrastructure.Data;
 
 public partial class EmployeeManagementDbContext : DbContext
 {
-    public EmployeeManagementDbContext(DbContextOptions<EmployeeManagementDbContext> options)
-        : base(options)
+    public EmployeeManagementDbContext(DbContextOptions<EmployeeManagementDbContext> options) : base(options)
     {
+
     }
 
     public virtual DbSet<Department> Departments { get; set; }

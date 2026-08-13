@@ -16,6 +16,7 @@ namespace EmployeeManagementSystem.API.Controllers
             _departmentService = departmentService;
         }
 
+        [Authorize(Roles = "Admin,Employee")]
         [HttpGet]
         public async Task<IActionResult> GetAllDepartments()
         {
