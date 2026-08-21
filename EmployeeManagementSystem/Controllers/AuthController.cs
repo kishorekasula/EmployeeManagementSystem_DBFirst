@@ -1,6 +1,7 @@
 ﻿using EmployeeManagement.Application.Common.Exceptions;
 using EmployeeManagement.Application.DTOs.Auth;
 using EmployeeManagement.Application.Interfaces.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using static System.Net.WebRequestMethods;
 
@@ -130,6 +131,18 @@ public class AuthController : ControllerBase
             statusCode = StatusCodes.Status200OK,
             message = "Login successful.",
             data = result
+        });
+    }
+
+    [Authorize]
+    [HttpPost("Logout")]
+    public IActionResult Logout()
+    {
+        // Implement logout logic here, such as clearing cookies or tokens
+        return Ok(new
+        {
+            statusCode = StatusCodes.Status200OK,
+            message = "Logout successful."
         });
     }
 }

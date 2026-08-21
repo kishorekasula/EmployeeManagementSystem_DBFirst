@@ -14,6 +14,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IUserService, UserService>();
 
+        services.AddScoped<IUserRoleService, UserRoleService>();
+        services.AddScoped<IUserRoleRepository, UserRoleRepository>();
+
         services.AddScoped<IAuthService, AuthService>();
 
         services.AddScoped<IPasswordHasher, PasswordHasher>();
