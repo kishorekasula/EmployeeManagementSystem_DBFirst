@@ -175,4 +175,74 @@ public class UserRepository : IUserRepository
         await _dbContext.SaveChangesAsync();
 
     }
+
+    public async Task<UserDataDto> CreateUserAsync(CreateUserRequestDto request, string passwordHash)
+    {
+        var role = await _dbContext.Roles.FirstOrDefaultAsync(r => r.RoleCode == request.role_code && r.IsActive);
+
+        if (role == null)
+        {
+            throw new InvalidOperationException($"Active role '{request.role_code}' was not found.");
+        }
+
+        var user = new User
+        {
+            FirstName = request.first_name,
+            LastName = request.last_name,
+            Email = request.email.Trim(),
+            PasswordHash = passwordHash,
+            IsEmailVerified = false,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        user.UserRoles.Add(new UserRole
+        {
+            RoleId = role.RoleId,
+            AssignedAt = DateTime.UtcNow
+        });
+
+        _dbContext.Users.Add(user);
+
+        await _dbContext.SaveChangesAsync();
+
+        return await GetByIdAsync(user.UserId)?? throw new InvalidOperationException("Failed to retrieve the newly created user.");
+    }
+
+    public async Task<UserDataDto?> UpdateAsync(int userId, UpdateUserRequestDto request)
+    {
+        var user = await _dbContext.Users.FirstOrDefaultAsync(x => x.UserId == userId);
+
+        if (user == null)
+        {
+            return null;
+        }
+
+        user.FirstName = request.first_name.Trim();
+        user.LastName = request.last_name.Trim();
+        user.IsActive = request.is_active;
+        user.Email = request.email.Trim();
+        user.UpdatedAt = DateTime.Now;
+
+        await _dbContext.SaveChangesAsync();
+
+        return await GetByIdAsync(user.UserId);
+    }
+
+    public async Task<bool> DeleteAsync(int userId)
+    {
+        var user = await _dbContext.Users.FirstOrDefaultAsync(x => x.UserId == userId);
+
+        if (user == null)
+        {
+            return false;
+        }
+
+        user.IsActive = false;
+        user.UpdatedAt = DateTime.Now;
+
+        await _dbContext.SaveChangesAsync();
+
+        return true;
+    }
 }

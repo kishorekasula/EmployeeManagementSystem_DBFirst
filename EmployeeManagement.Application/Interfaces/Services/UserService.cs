@@ -108,4 +108,43 @@ public class UserService : IUserService
 
         return MapToResponse(user);
     }
+
+    public async Task<UserResponseDto?> UpdateAsync(int userId, UpdateUserRequestDto request)
+    {
+       var existingUser = await _userRepository.GetByIdAsync(userId);
+
+        if (existingUser == null)
+        {
+            return null;
+        }
+
+        if(!existingUser.Email.Equals(request.email.Trim(),StringComparison.OrdinalIgnoreCase))
+        {
+            var emailExists = await _userRepository.EmailExistsAsync(request.email);
+
+            if (emailExists)
+            {
+                throw new ConflictException($"Email '{request.email}' is already in use.");
+            }
+        }
+
+        var user = await _userRepository.UpdateAsync(userId, request);
+
+        if (user == null)
+        {
+            return null;
+        }
+
+        return MapToResponse(user);
+    }
+
+    public async Task<bool> DeleteAsync(int userId)
+    {
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null)
+        {
+            return false;
+        }
+        return await _userRepository.DeleteAsync(userId);
+    }
 }
