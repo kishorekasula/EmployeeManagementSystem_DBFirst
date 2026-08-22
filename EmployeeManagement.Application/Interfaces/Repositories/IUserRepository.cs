@@ -21,5 +21,7 @@ namespace EmployeeManagement.Application.Interfaces.Repositories
         Task MarkEmailAsVerifiedAsync(int userId);
         Task<LoginUserDto?> GetLoginUserAsync(string email);
         Task UpdateLastLoginAsync(int userId);
+        Task<string?> GetPasswordHashAsync(int userId);
+        Task UpdatePasswordAsync(int userId, string passwordHash);
     }
 }

@@ -247,4 +247,109 @@ public class AuthService : IAuthService
             //RefreshTokenExpiry = _jwtService.GetRefreshTokenExpiry()
         };
     }
+
+    public async Task ForgotPasswordAsync(string email)
+    {
+        var user = await _userRepository.GetByEmailAsync(email);
+
+        if (user == null)
+        {
+            throw new NotFoundException("User not found.");
+        }
+        // Generate OTP
+        var otp = _otpService.GenerateOtp();
+        // Hash OTP
+        var otpHash = _otpService.HashOtp(otp);
+        // Calculate expiry
+        var expiresAt = _otpService.GetExpiryTime();
+        // Save OTP
+        await _emailOtpRepository.CreateAsync(user.UserId, otpHash, expiresAt);
+        // Send OTP to user's email
+        await _emailService.SendOtpAsync(user.Email, user.FirstName, otp);
+    }
+
+    public async Task VerifyResetOtpAsync(string email, string otp)
+    {
+        var user = await _userRepository.GetByEmailAsync(email);
+
+        if (user == null)
+        {
+            throw new NotFoundException("User not found.");
+        }
+
+        var otpRecord = await _emailOtpRepository.GetLatestUnusedAsync(user.UserId);
+
+        if (otpRecord == null)
+        {
+            throw new BadRequestException("No active OTP was found. Please request a new OTP.");
+        }
+        if (DateTime.Now > otpRecord.ExpiresAt)
+        {
+            throw new BadRequestException("OTP has expired. Please request a new OTP.");
+        }
+
+        var maxAttempts = _otpService.GetMaxAttempts();
+
+        if (otpRecord.AttemptCount >= maxAttempts)
+        {
+            throw new BadRequestException("Maximum OTP verification attempts exceeded.");
+        }
+
+        var isValid = _otpService.VerifyOtp(otp, otpRecord.OtpHash);
+
+        if (!isValid)
+        {
+            await _emailOtpRepository.IncrementAttemptAsync(otpRecord.EmailOtpId);
+            throw new BadRequestException("Invalid OTP.");
+        }
+
+        await _emailOtpRepository.MarkAsUsedAsync(otpRecord.EmailOtpId);
+    }
+
+    public async Task ResetPasswordAsync(string email, string otp, string new_password, string confirm_password)
+    {
+        if (new_password != confirm_password)
+        {
+            throw new BadRequestException("New password and confirm password do not match.");
+        }
+
+        var user = await _userRepository.GetByEmailAsync(email);
+
+        if (user == null)
+        {
+            throw new NotFoundException("User not found.");
+        }
+
+        var otpRecord = await _emailOtpRepository.GetLatestUnusedAsync(user.UserId);
+
+        if (otpRecord == null)
+        {
+            throw new BadRequestException("No active OTP was found. Please request a new OTP.");
+        }
+        if (DateTime.Now > otpRecord.ExpiresAt)
+        {
+            throw new BadRequestException("OTP has expired. Please request a new OTP.");
+        }
+
+        var maxAttempts = _otpService.GetMaxAttempts();
+
+        if (otpRecord.AttemptCount >= maxAttempts)
+        {
+            throw new BadRequestException("Maximum OTP verification attempts exceeded.");
+        }
+
+        var isValid = _otpService.VerifyOtp(otp, otpRecord.OtpHash);
+
+        if (!isValid)
+        {
+            await _emailOtpRepository.IncrementAttemptAsync(otpRecord.EmailOtpId);
+            throw new BadRequestException("Invalid OTP.");
+        }
+        // Hash the new password
+        var passwordHash = _passwordHasher.Hash(new_password);
+        // Update the user's password
+        await _userRepository.UpdatePasswordAsync(user.UserId, passwordHash);
+        // Mark the OTP as used
+        await _emailOtpRepository.MarkAsUsedAsync(otpRecord.EmailOtpId);
+    }
 }

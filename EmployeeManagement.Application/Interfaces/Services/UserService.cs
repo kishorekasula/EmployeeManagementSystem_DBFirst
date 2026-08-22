@@ -147,4 +147,53 @@ public class UserService : IUserService
         }
         return await _userRepository.DeleteAsync(userId);
     }
+
+    public async Task<bool> ChangePasswordAsync(int userId, ChangePasswordRequestDto request)
+    {
+        if (string.IsNullOrWhiteSpace(request.current_password))
+        {
+            throw new ArgumentException("Current password is required.", nameof(request.current_password));
+        }
+
+        if (string.IsNullOrWhiteSpace(request.new_password))
+        {
+            throw new ArgumentException("New password is required.", nameof(request.new_password));
+        }
+
+        if (string.IsNullOrWhiteSpace(request.confirm_password))
+        {
+            throw new ArgumentException("Confirm password is required.", nameof(request.confirm_password));
+        }
+
+        if (request.new_password != request.confirm_password)
+        {
+            throw new ArgumentException("New password and confirm password do not match.");
+        }
+
+        if (request.current_password == request.new_password)
+        {
+            throw new ArgumentException("New password must be different from the current password.");
+        }
+
+        var passwordHash = await _userRepository.GetPasswordHashAsync(userId);
+
+        if (passwordHash == null)
+        {
+            throw new KeyNotFoundException($"User with ID {userId} not found.");
+        }
+
+        var currentPasswordValid = _passwordHasher.Verify(request.current_password, passwordHash);
+
+        if (!currentPasswordValid)
+        {
+            throw new InvalidOperationException("Current password is incorrect.");
+        }
+
+        var newPasswordHash = _passwordHasher.Hash(request.new_password);
+
+        await _userRepository.UpdatePasswordAsync(userId, newPasswordHash);
+
+        return true;
+    }
+
 }

@@ -145,4 +145,106 @@ public class AuthController : ControllerBase
             message = "Logout successful."
         });
     }
+
+    [HttpPost("ForgotPassword")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDto request)
+    {
+        try
+        {
+            await _authService.ForgotPasswordAsync(request.email);
+            return StatusCode(StatusCodes.Status200OK,
+                new
+                {
+                    statusCode = StatusCodes.Status200OK,
+                    message = "Password reset OTP sent to your email."
+                });
+
+        }
+        catch (NotFoundException ex)
+        {
+            return StatusCode(StatusCodes.Status404NotFound,
+                new
+                {
+                    statusCode = StatusCodes.Status404NotFound,
+                    message = ex.Message
+                });
+        }
+    }
+
+    [HttpPost("VerifyResetOtp")]
+    [AllowAnonymous]
+    public async Task<IActionResult> VerifyResetOtp([FromBody] VerifyResetOtpRequestDto request)
+    {
+        try
+        {
+            await _authService.VerifyResetOtpAsync(request.email, request.otp);
+            return StatusCode(StatusCodes.Status200OK,
+                new
+                {
+                    statusCode = StatusCodes.Status200OK,
+                    message = "OTP verified successfully."
+                });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new
+            {
+                statusCode = StatusCodes.Status401Unauthorized,
+                message = ex.Message
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new
+            {
+                statusCode = StatusCodes.Status400BadRequest,
+                message = ex.Message
+            });
+        }
+    }
+
+    [HttpPost("ResetPassword")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequestDto request)
+    {
+        try
+        {
+            await _authService.ResetPasswordAsync(
+                request.email,
+                request.otp,
+                request.new_password,
+                request.confirm_password);
+
+            return Ok(new
+            {
+                statusCode = StatusCodes.Status200OK,
+                message = "Password reset successfully."
+            });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new
+            {
+                statusCode = StatusCodes.Status401Unauthorized,
+                message = ex.Message
+            });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new
+            {
+                statusCode = StatusCodes.Status400BadRequest,
+                message = ex.Message
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new
+            {
+                statusCode = StatusCodes.Status400BadRequest,
+                message = ex.Message
+            });
+        }
+    }
 }
