@@ -52,8 +52,6 @@ builder.Services.AddSwaggerGen(options =>
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 
-builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
-
 builder.Services.AddDbContext<EmployeeManagementDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
@@ -64,8 +62,6 @@ builder.Services.AddApplicationServices();
 builder.Services.AddScoped<IJwtService, JwtService>();
 
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
-
-builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 .AddJwtBearer(options =>
@@ -81,9 +77,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
         ValidAudience = builder.Configuration["JwtSettings:Audience"],
 
-        IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(
-                builder.Configuration["JwtSettings:Key"]!)),
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"]!)),
 
         ClockSkew = TimeSpan.Zero
     };

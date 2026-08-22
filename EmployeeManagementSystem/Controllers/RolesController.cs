@@ -8,6 +8,7 @@ namespace EmployeeManagementSystem.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class RolesController : ControllerBase
     {
         private readonly IRoleService _roleService;
@@ -17,6 +18,7 @@ namespace EmployeeManagementSystem.API.Controllers
             _roleService = roleService;
         }
 
+        [Authorize(Roles = "ADMIN,HR")]
         [HttpGet("GetAllRoles")]
         public async Task<IActionResult> GetAllRoles()
         {
@@ -28,6 +30,7 @@ namespace EmployeeManagementSystem.API.Controllers
             });
         }
 
+        [Authorize(Roles = "ADMIN,HR")]
         [HttpGet("GetRoleById/{roleId}")]
         public async Task<IActionResult> GetRoleById([FromRoute] int roleId)
         {
@@ -49,6 +52,7 @@ namespace EmployeeManagementSystem.API.Controllers
             });
         }
 
+        [Authorize(Roles = "ADMIN")]
         [HttpPost("CreateRole")]
         public async Task<IActionResult> CreateRole([FromBody] CreateRoleRequestDto createRoleRequestDto)
         {
@@ -72,6 +76,7 @@ namespace EmployeeManagementSystem.API.Controllers
             }
         }
 
+        [Authorize(Roles = "ADMIN")]
         [HttpPut("UpdateRole/{roleId}")]
         public async Task<IActionResult> UpdateRole([FromRoute] int roleId, [FromBody] UpdateRoleRequestDto updateRoleRequestDto)
         {
@@ -95,6 +100,7 @@ namespace EmployeeManagementSystem.API.Controllers
             }
         }
 
+        [Authorize(Roles = "ADMIN")]
         [HttpDelete("DeleteRole/{roleId}")]
         public async Task<IActionResult> DeleteRole([FromRoute] int roleId)
         {
