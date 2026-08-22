@@ -16,7 +16,7 @@ namespace EmployeeManagementSystem.API.Controllers
             _departmentService = departmentService;
         }
 
-        [Authorize(Roles = "Admin,Employee")]
+        [Authorize(Roles = "ADMIN,HR,MANAGER,EMPLOYEE")]
         [HttpGet]
         public async Task<IActionResult> GetAllDepartments()
         {
@@ -28,6 +28,7 @@ namespace EmployeeManagementSystem.API.Controllers
             });
         }
 
+        [Authorize(Roles = "ADMIN,HR")]
         [HttpPost]
         public async Task<IActionResult> CreateDepartment([FromBody] CreateDepartmentRequestDto createDepartmentRequestDto)
         {
@@ -51,6 +52,7 @@ namespace EmployeeManagementSystem.API.Controllers
             }
         }
 
+        [Authorize(Roles = "ADMIN,HR,MANAGER,EMPLOYEE")]
         [HttpGet("{departmentId}")]
         public async Task<IActionResult> GetDepartmentById(int departmentId)
         {
@@ -70,6 +72,7 @@ namespace EmployeeManagementSystem.API.Controllers
             });
         }
 
+        [Authorize(Roles = "ADMIN,HR")]
         [HttpPut("{departmentId}")]
         public async Task<IActionResult> UpdateDepartment(int departmentId, [FromBody] UpdateDepartmentRequestDto updateDepartmentRequestDto)
         {
@@ -103,6 +106,7 @@ namespace EmployeeManagementSystem.API.Controllers
             }
         }
 
+        [Authorize(Roles = "ADMIN")]
         [HttpDelete("{departmentId}")]
         public async Task<IActionResult> DeleteDepartment(int departmentId)
         {

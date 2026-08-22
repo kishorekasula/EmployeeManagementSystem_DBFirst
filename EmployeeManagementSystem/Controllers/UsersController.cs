@@ -21,6 +21,7 @@ public class UsersController : ControllerBase
         _userRoleService = userRoleService;
     }
 
+    [Authorize(Roles = "ADMIN,HR")]
     [HttpGet("GetAllUsers")]
     public async Task<IActionResult> GetAllUsers()
     {
@@ -34,6 +35,7 @@ public class UsersController : ControllerBase
             });
     }
 
+    [Authorize(Roles = "ADMIN,HR,MANAGER,EMPLOYEE")]
     [HttpGet("GetUserById/{userId}")]
     public async Task<IActionResult> GetUserById(int userId)
     {
@@ -57,7 +59,7 @@ public class UsersController : ControllerBase
             });
     }
 
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "ADMIN,HR")]
     [HttpPost("CreateUser")]
     public async Task<IActionResult> CreateUser([FromBody] CreateUserRequestDto request)
     {
@@ -92,6 +94,7 @@ public class UsersController : ControllerBase
         }
     }
 
+    [Authorize(Roles = "ADMIN,HR")]
     [HttpPut("UpdateUser/{userId}")]
     public async Task<IActionResult> UpdateUser(int userId, [FromBody] UpdateUserRequestDto request)
     {
@@ -128,6 +131,7 @@ public class UsersController : ControllerBase
         }
     }
 
+    [Authorize(Roles = "ADMIN")]
     [HttpDelete("DeleteUser/{userId}")]
     public async Task<IActionResult> DeleteUser(int userId)
     {
@@ -161,6 +165,7 @@ public class UsersController : ControllerBase
         }
     }
 
+    [Authorize(Roles = "ADMIN,HR")]
     [HttpGet("GetUserRoles/{userId}")]
     public async Task<IActionResult> GetUserRoles(int userId)
     {
@@ -193,6 +198,7 @@ public class UsersController : ControllerBase
         }
     }
 
+    [Authorize(Roles = "ADMIN")]
     [HttpPost("AssignRole/{userId}")]
     public async Task<IActionResult> AssignRole(int userId, [FromBody] AssignRoleRequestDto request)
     {
@@ -225,6 +231,7 @@ public class UsersController : ControllerBase
         }
     }
 
+    [Authorize(Roles = "ADMIN")]
     [HttpDelete("RemoveRole/{userId}/{roleId}")]
     public async Task<IActionResult> RemoveRole(int userId, int roleId)
     {
