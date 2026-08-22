@@ -245,4 +245,26 @@ public class UserRepository : IUserRepository
 
         return true;
     }
+
+    public async Task<string?> GetPasswordHashAsync(int userId)
+    {
+        return await _dbContext.Users.AsNoTracking().Where(x => x.UserId == userId)
+        .Select(x => x.PasswordHash)
+        .FirstOrDefaultAsync();
+    }
+
+    public async Task UpdatePasswordAsync(int userId, string passwordHash)
+    {
+        var user = await _dbContext.Users.FirstOrDefaultAsync(x => x.UserId == userId);
+
+        if (user == null)
+        {
+            throw new InvalidOperationException($"User with ID '{userId}' was not found.");
+        }
+
+        user.PasswordHash = passwordHash;
+        user.UpdatedAt = DateTime.UtcNow;
+
+        await _dbContext.SaveChangesAsync();
+    }
 }

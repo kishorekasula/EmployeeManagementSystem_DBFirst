@@ -262,4 +262,73 @@ public class UsersController : ControllerBase
             });
         }
     }
+
+    [HttpPut("ChangePassword")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequestDto request)
+    {
+        try
+        {
+            var useridClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+
+            if (useridClaim == null)
+            {
+                return Unauthorized(new
+                {
+                    statusCode = StatusCodes.Status400BadRequest,
+                    message = "User ID not found."
+                });
+            }
+
+            if (!int.TryParse(useridClaim.Value, out var userId))
+            {
+                return Unauthorized(new
+                {
+                    statusCode = StatusCodes.Status401Unauthorized,
+                    message = "Invalid user identity."
+                });
+            }
+
+            await _userService.ChangePasswordAsync(userId, request);
+
+            return Ok(new
+            {
+                statusCode = StatusCodes.Status200OK,
+                message = "Password changed successfully."
+            });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new
+            {
+                statusCode = StatusCodes.Status401Unauthorized,
+                message = $"{ex.Message}"
+            });
+        }
+
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new
+            {
+                statusCode = StatusCodes.Status404NotFound,
+                message = ex.Message
+            });
+        }
+
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new
+            {
+                statusCode = StatusCodes.Status400BadRequest,
+                message = ex.Message
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new
+            {
+                statusCode = StatusCodes.Status400BadRequest,
+                message = ex.Message
+            });
+        }
+    }
 }

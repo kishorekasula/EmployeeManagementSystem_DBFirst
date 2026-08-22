@@ -9,4 +9,5 @@ public interface IUserService
     Task<UserResponseDto> CreateAsync(CreateUserRequestDto request);
     Task<UserResponseDto?> UpdateAsync(int userId, UpdateUserRequestDto request);
     Task<bool> DeleteAsync(int userId);
+    Task<bool> ChangePasswordAsync(int userId, ChangePasswordRequestDto request);
 }

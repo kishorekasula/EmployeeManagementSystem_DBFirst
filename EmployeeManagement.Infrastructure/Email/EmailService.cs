@@ -39,7 +39,7 @@ public class EmailService : IEmailService
         {
             From = new MailAddress(senderEmail!, senderName),
 
-            Subject = "Verify Your Email – Your Verification Code",
+            Subject = "Your Verification Code",
 
             Body = $"""
                 <!DOCTYPE html>
